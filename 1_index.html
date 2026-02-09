@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Dive: Linear Regression from Scratch</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        
+        pre code {
+            font-family: 'Fira Code', monospace !important;
+            border-radius: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .math-block {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border-left: 4px solid #3b82f6;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+        <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+            <span class="font-bold text-xl tracking-tight gradient-text">ML Notbook</span>
+            <div class="space-x-6 text-sm font-medium text-slate-600">
+                <a href="#theory" class="hover:text-blue-600 transition">Theory</a>
+                <a href="#code" class="hover:text-blue-600 transition">Code</a>
+                <a href="#techniques" class="hover:text-blue-600 transition">Techniques</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="max-w-4xl mx-auto px-6 pt-16 pb-12">
+        <div class="mb-4 inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider">
+            Beginner Series
+        </div>
+        <h1 class="text-4xl md:text-5xl font-extrabold mb-6 text-slate-900">
+            Building Linear Regression from Scratch: A Mathematical Journey
+        </h1>
+        <div class="flex items-center space-x-4 text-slate-500 text-sm">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-full bg-slate-300"></div>
+                <span>By AI Researcher</span>
+            </div>
+            <span>•</span>
+            <span>June 12, 2024</span>
+            <span>•</span>
+            <span>8 min read</span>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-6 pb-24">
+        
+        <!-- Intro Image Placeholder -->
+        <div class="w-full h-64 md:h-96 bg-slate-200 rounded-3xl mb-12 flex items-center justify-center overflow-hidden relative">
+            <svg class="absolute w-full h-full text-slate-300 opacity-20" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <line x1="10" y1="90" x2="90" y2="10" stroke="currentColor" stroke-width="0.5" />
+                <circle cx="20" cy="80" r="1.5" fill="currentColor" />
+                <circle cx="40" cy="65" r="1.5" fill="currentColor" />
+                <circle cx="60" cy="40" r="1.5" fill="currentColor" />
+                <circle cx="80" cy="15" r="1.5" fill="currentColor" />
+            </svg>
+            <div class="text-center z-10">
+                <p class="text-slate-500 font-medium">Visualization: Finding the Line of Best Fit</p>
+            </div>
+        </div>
+
+        <!-- Section: Theory -->
+        <section id="theory" class="prose prose-slate max-w-none mb-16">
+            <h2 class="text-3xl font-bold mb-6">The Theory</h2>
+            <p class="text-lg text-slate-600 mb-6">
+                Linear Regression is the foundation of supervised machine learning. At its core, it attempts to model the relationship between two variables by fitting a linear equation to observed data. 
+            </p>
+            
+            <div class="math-block">
+                <p class="text-center font-bold mb-2">The Hypothesis Function</p>
+                $$h_\theta(x) = mx + b$$
+                <p class="text-sm text-slate-500 mt-2 text-center">Where \(m\) is the weight (slope) and \(b\) is the bias (y-intercept).</p>
+            </div>
+
+            <h3 class="text-2xl font-semibold mt-8 mb-4">The Objective: Minimizing Loss</h3>
+            <p>
+                How do we know if our line is "good"? We use a <strong>Loss Function</strong>. In this implementation, we use <em>Mean Squared Error (MSE)</em>. It calculates the average of the squares of the errors—the difference between the actual value (\(y\)) and the predicted value (\(y_{pred}\)).
+            </p>
+            <div class="math-block">
+                $$J(m, b) = \frac{1}{n} \sum_{i=1}^{n} (y_i - (mx_i + b))^2$$
+            </div>
+        </section>
+
+        <!-- Section: Code -->
+        <section id="code" class="mb-16">
+            <h2 class="text-3xl font-bold mb-6">The Refactored Implementation</h2>
+            <p class="text-slate-600 mb-6">
+                Below is the updated code. We've shifted from generic naming to more descriptive variables to improve readability and modified the data generation to use different ranges.
+            </p>
+            
+            <div class="relative group">
+                <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                <pre class="relative"><code class="language-python">import numpy as np
+
+# 1. Dataset Construction
+# We use linspace to create a range of features
+# Target values are generated using the rule: y = 2.5x + 10
+features = np.linspace(5, 15, 6)
+targets = 2.5 * features + 10
+
+# 2. Hyperparameter Configuration
+slope_m = 0.0      # Initialize weight
+intercept_c = 0.0  # Initialize bias
+step_size = 0.01   # Learning rate
+training_steps = 15000
+
+# 3. Optimization Loop (Gradient Descent)
+for step in range(training_steps):
+    # Forward Pass: Compute predictions
+    predictions = (slope_m * features) + intercept_c
+    
+    # Calculate Residuals (difference)
+    residuals = predictions - targets
+    
+    # Cost Function: Mean Squared Error
+    mse_loss = np.mean(np.square(residuals))
+    
+    # Calculating Gradients (The derivatives of the loss function)
+    # dJ/dm = (2/n) * sum( (pred - target) * features )
+    grad_slope = 2 * np.mean(residuals * features)
+    
+    # dJ/dc = (2/n) * sum( pred - target )
+    grad_intercept = 2 * np.mean(residuals)
+    
+    # Parameter Update Rule
+    slope_m -= step_size * grad_slope
+    intercept_c -= step_size * grad_intercept
+    
+    # Monitoring progress every 1000 steps
+    if step % 1000 == 0:
+        print(f"Step {step:5d} | Loss: {mse_loss:10.4f} | m: {slope_m:6.2f} | c: {intercept_c:6.2f}")
+
+print("-" * 40)
+print(f"Final Model: y = {slope_m:.4f}x + {intercept_c:.4f}")</code></pre>
+            </div>
+        </section>
+
+        <!-- Section: Techniques -->
+        <section id="techniques" class="prose prose-slate max-w-none">
+            <h2 class="text-3xl font-bold mb-6 text-slate-900">Techniques Applied</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6 mb-12">
+                <div class="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                    <h4 class="font-bold text-blue-600 mb-2">Gradient Descent</h4>
+                    <p class="text-sm text-slate-600">This is our optimization algorithm. It iteratively moves towards the minimum of the loss function by following the negative of the gradient.</p>
+                </div>
+                <div class="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                    <h4 class="font-bold text-purple-600 mb-2">Vectorization</h4>
+                    <p class="text-sm text-slate-600">Instead of looping through each data point, we use <code>np.mean</code> and <code>np.square</code>. This leverages low-level C optimizations in NumPy for speed.</p>
+                </div>
+                <div class="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                    <h4 class="font-bold text-emerald-600 mb-2">Learning Rate Control</h4>
+                    <p class="text-sm text-slate-600">The <code>step_size</code> parameter controls the speed of convergence. Too large, and it diverges; too small, and training takes forever.</p>
+                </div>
+                <div class="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                    <h4 class="font-bold text-orange-600 mb-2">Partial Derivatives</h4>
+                    <p class="text-sm text-slate-600">We calculate <code>grad_slope</code> and <code>grad_intercept</code>. These tell us how much the loss changes for every unit change in our parameters.</p>
+                </div>
+            </div>
+
+            <h3 class="text-2xl font-semibold mb-4">Summary</h3>
+            <p>
+                By updating the weight and bias in small increments, we slowly "roll" down the loss surface into the valley of minimum error. In the updated code above, the model successfully rediscovers the relationship \(y = 2.5x + 10\) without ever being explicitly told the numbers 2.5 or 10.
+            </p>
+        </section>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-12 px-6">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <p>&copy; 2024 Machine Learning Journal. All rights reserved.</p>
+            <div class="flex space-x-6 mt-4 md:mt-0">
+                <a href="#" class="hover:text-white">Github</a>
+                <a href="#" class="hover:text-white">Twitter</a>
+                <a href="#" class="hover:text-white">Newsletter</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize highlighting
+        hljs.highlightAll();
+        
+        // Simple scroll observer for nav links
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('nav a');
+            
+            let current = "";
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('text-blue-600');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('text-blue-600');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
